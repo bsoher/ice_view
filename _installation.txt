@@ -1,0 +1,50 @@
+
+General Description of Dependencies 
+=======================================
+
+Miniconda2 64bit installer (Miniconda2-latest-Windows-x86_64.exe)
+
+Use 'conda install xxx' command to install the following packages:
+
+  numpy
+  scipy
+  matplotlib
+  wxpython
+
+Use pip to install the following:
+
+  pydicom
+  nibabel
+
+Make sure that miniconda2 Python installation is first in your PATH variable.
+This is usually the case after calling >conda activate python38 (or whatever
+environment name you've created) from the command line.
+
+
+
+Installation Instructions
+=======================================
+
+You'll need to use the command line for most of these instructions. If 
+possible, we suggest that you copy and paste the commands in this guide 
+to reduce the possibility of typos.
+
+Step 1 - Install Python
+
+  Washout uses 64-bit Python 3.9. We recommend using an automated Python 
+  distribution called Miniconda. These instructions assume that you used 
+  Miniconda to install 64-bit Python as described below.
+
+  Install the 64-bit Python 3.9 for your system from here: 
+  http://conda.pydata.org/miniconda.html
+
+Step 2 - Install Washout's Dependencies
+
+  Run this command --
+
+    conda install numpy scipy matplotlib wxPython
+
+  Then run this command --
+
+    pip install nibabel pydicom
+

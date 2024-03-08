@@ -1,0 +1,89 @@
+
+1. Install PyInstaller (need 2.1 or later to make RtView and Listener work)
+2. Install PyWin32 (a PyInstaller dependency)
+
+From the Installation Section of the User Manual
+
+  The complete installation places these commands on the execution path:
+
+  - pyinstaller is the main command to build a bundled application. See Using PyInstaller.
+  - pyi-makespec is used to create a spec file. See Using Spec Files.
+  - pyi-build is used to execute a spec file that already exists. See Using Spec Files.
+  - pyi-archive_viewer is used to inspect a bundled application. See Inspecting Archives.
+  - pyi-bindepend is used to display dependencies of an executable. See Inspecting Executables.
+  - pyi-grab_version is used to extract a version resource from a Windows executable. See Capturing Version Data.
+  - pyi-make_comserver is used to build a Windows COM server. See Windows COM Server Support.
+
+  If you do not perform the complete installation (setup.py or installing via 
+  pip), these commands will not exist as commands. However you can still execute 
+  all the functions documented below by running Python scripts found in the 
+  distribution folder. 
+  
+  The equivalent of the pyinstaller command is pyinstaller-folder /pyinstaller.py. 
+  The other commands are found in pyinstaller-folder /cliutils/ with obvious names (makespec.py, etc.)
+
+To create washout.exe
+-------------------------------------------------------------------------------
+1. I opened a Console in washout/washout folder.
+2. Ran pyi-makespec --onefile washout.py
+
+3. Editied default spec file to washout specific stuff:
+
+  Original .spec file =
+
+	a = Analysis(['washout.py'],
+			   pathex=['C:\\Users\\bsoher\\code\\repository_svn\\washout\\washout'],
+			   hiddenimports=[], hookspath=None, runtime_hooks=None)
+
+  Edited .spec file =
+
+	a = Analysis(['washout.py'],
+			   pathex=['C:\\Users\\bsoher\\code\\repository_svn\\washout\\washout'],
+			   hiddenimports=[], hookspath=None, runtime_hooks=None)
+
+	# The VERSION file needs to come along as part of the bundle. 
+	a.datas += [('VERSION', "..\\VERSION", 'DATA')]			 
+
+	# The Welcome Tab PNG file needs to come along as part of the bundle. 
+	a.datas += [('washscreen.png', "..\\washout\\washscreen.png", 'DATA')]			 
+				 
+	# The Washout INI file needs to come along as part of the bundle. 
+	a.datas += [('washout.ini', "..\\washout\\washout.ini", 'DATA')]
+
+4. Ran pyinstaller washout.spec
+5. This created a directory 'dist' and dist/washout.exe file
+
+
+
+-----------------------------------------
+Issues I found
+-----------------------------------------
+Issue with libzmq backend not being found (but not what's on the blogs)
+Issue with PyQt5 plugins not being found (huh?)
+Had to pip install pyinstaller-develop.zip latest edition to get past (not solve) these
+Had to massage common\misc.py for some of the get_data_dir() and get_installation() calls
+
+
+
+===============================================================================
+Everything below here is from Philip's original set of notes
+===============================================================================
+
+How I Built a Standalone EXE using PyInstaller
+
+I built a standlone EXE version of listener.py using PyInstaller in July 2012. 
+The EXE didn't require any extra files, not even the Python runtime. Here's 
+how I did it. FYI, this was under Windows XP using Python 2.7.
+
+1. Installed PyInstaller.
+2. Installed PyWin32 (a PyInstaller dependency)
+3. ran 'python c:\pyinstaller\Configure.py' (as their manual instructs)
+4. ran 'python Makespec.py --onefile listener.py' which created listener.spec
+
+I hand-edited listener.spec to accommodate some Vespa-specific quirks. 
+
+Once I had the spec file I wanted, it ran this to generate dist/listener.exe:
+python c:\pyinstaller\Build.py listener.spec
+
+That's it!
+ 

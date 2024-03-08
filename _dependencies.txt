@@ -1,0 +1,76 @@
+
+These should all be a part of Python 3.x install
+
+abc
+argparse
+base64
+bz2
+codecs
+collections
+compiler
+copy
+csv
+ctypes
+datetime
+doctest
+exceptions
+gzip
+itertools
+json
+logging
+math
+operator
+ordereddict
+os
+platform
+random
+re
+struct
+sys
+tempfile
+thread
+time
+uuid
+webbrowser
+warnings
+xdrlib
+xml
+zlib
+
+
+These are 3rd party modules you may need to install.
+
+numpy             BSD
+scipy             BSD
+matplotlib        BSD
+pyparsing         MIT
+python-dateutil   BSD
+wxpython          OSI Approved (wxWindows Library License (https://opensource.org/licenses/wxwindows.php
+nibabel           MIT
+pydicom           MIT
+configobj	      BSD
+nrrd              MIT
+dcmstack          MIT
+validate          BSD
+
+from conda:
+------------
+numpy
+scipy
+matplotlib
+- pyparsing
+- python-dateutil
+wxpython
+
+from pip:
+----------
+nibabel
+pydicom 
+pynrrd
+configobj
+validate - copied file to local copy
+
+
+
+
+
