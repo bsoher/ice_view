@@ -44,12 +44,34 @@ import ice_view.common.common_dialogs as common_dialogs
 
 from wx.lib.embeddedimage import PyEmbeddedImage
 
-Mondrian = PyEmbeddedImage(
-    "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABHNCSVQICAgIfAhkiAAAAHFJ"
-    "REFUWIXt1jsKgDAQRdF7xY25cpcWC60kioI6Fm/ahHBCMh+BRmGMnAgEWnvPpzK8dvrFCCCA"
-    "coD8og4c5Lr6WB3Q3l1TBwLYPuF3YS1gn1HphgEEEABcKERrGy0E3B0HFJg7C1N/f/kTBBBA"
-    "+Vi+AMkgFEvBPD17AAAAAElFTkSuQmCC")
 
+
+
+
+class MyFileDropTarget(wx.FileDropTarget):
+    def __init__(self, frame):
+        wx.FileDropTarget.__init__(self)
+        self.frame = frame
+
+    def OnDropFiles(self, x, y, filenames):
+        if not filenames:
+            return
+        item = filenames[0]
+        if os.path.isfile(item):
+            txt0 = "Valid file path dropped"
+            txt1 = str(item)
+            # self.frame.TextSourceDirectory.SetLabelText(item)
+            # self.frame.path = item
+        else:
+            txt0 = "Object dropped was INVALID file path"
+            txt1 = "Try File->Import"
+
+        self.frame.statusbar.SetStatusText((txt0), 0)
+        self.frame.statusbar.SetStatusText((txt1), 1)
+
+        # self.frame.update_log(txt)
+
+        return True
 
     
 
@@ -72,7 +94,7 @@ class Main(wx.Frame):
         self._mgr = aui.AuiManager()
         self._mgr.SetManagedWindow(self)
 
-        self.SetIcon(Mondrian.GetIcon())
+        self.SetIcon(IceViewIcon5.GetIcon())
 
         self.statusbar = self.CreateStatusBar(4, 0)
         self.statusbar.SetStatusText("Ready")
@@ -83,6 +105,8 @@ class Main(wx.Frame):
 
         self.build_panes()
         self.bind_events()
+
+        self.SetDropTarget(MyFileDropTarget(self))
 
         if fname is not None:
             self.load_on_start(fname)
@@ -435,6 +459,142 @@ class Main(wx.Frame):
 
 
 
+
+IceViewIcon5 = PyEmbeddedImage(
+    b'iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAAAXNSR0IArs4c6QAAAARnQU1B'
+    b'AACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAABuRSURBVHhe7V13jBXV256Ze3eBBWkq'
+    b'SBNhAYHYAohGEHsJYkmMDVFjLNEYNcEWxfaHJSY2/Nk1lhhjgrFFY/0EFSsKa0EswKKA4C6w'
+    b'1pVl996Z73nOPeflzNy5u8Cy7L3ceZLdOWfamTnvc95yylw3AJwEZQtPbxOUKRIClDkSApQ5'
+    b'EgKUORIClDlKJQoIlixZEvz2229ev379svvtt5/nAvpYgnagJAjw2WefZQ855BBqKwo9qKmp'
+    b'yR5wwAFpdTBBu1D0JqClpSV49tlnKXjX89Tjuq+99hoTSf/FdkDRawCofX/w4MGKALk9jjNx'
+    b'4sTgnXfeCXr37p34MO1E0Vfgr7/+SoIq4Ruzv2DBAmft2rW+yiRoF4qeALW1tUpDUfiplGdI'
+    b'4IIAohESbDuKnQDBqlWr1DNS+Nms7xiLtWLFikQDbAcUNQGam5uD77//XgnaFj7x119/JVHA'
+    b'dkBREyCbzbobN25UgjbCN37ADz/8kEWEkGiBdqKoCYBWnv3ggw9EyMYPIP788880CFLUz18K'
+    b'KOoKRAtPNzQ0qGc0wqcpINatW+fDRGRUJsE2o6gJ8N9//7XoJISfcjKZrHRbfPjhhy40RBIJ'
+    b'tBNFTYD6+npKO8gJP+OMGzeuoUePHsYTpPBTuWSCbUVREwBCr8TGha1nNpg5c2bVkCFDpNU3'
+    b'NjaKhkiwbShqAoi+B6qrq92BAwd2g93Xe5SG0KkE24piJkCwevXqJp1WYaDneZl0Oi1RATRD'
+    b'hU4m2EYUMwFchHoi4E2bNvm77rpry5gxY/SesIZIsG0oahPg+7709u27775Ov379KnbZZRd5'
+    b'ZmiIjdgkJGgHSsYHQOv3Kisr04wGDP7++29qiCQUbAeKlgAQdPbnn38WLx/agJ1BPnwAYQDO'
+    b'SXyAdqJoCcBu3oaGBonzU6lUBhogi0hAtIKeIZSgHSjaGoT2d9HqhQC9evXKdu3a1R00aJC0'
+    b'+j/++IPaIBkQageKugmZkT+iurq6Evk0TYHB0qVLOR7QphPIUcOVK1cGa9as4bmJ02ihmE2A'
+    b'v3HjRlvd5zl7EH6FrSXiAD8hmD17tjN06FBqD2fOnDlkUEICjaIlwL///tsyd+5c1QdsIYAT'
+    b'KF2BNBM6WRDffPNN9pprrjHv6Z5xxhkenMvofcsWRUsADgX/999/8nxG8LvssosIj1GiHSrG'
+    b'IPjggw8USXC9cRrdjz/+mPsSLQAULQG0apfn69mzpxL84MGDu6odQE3NokxjY+PmwYEImpqa'
+    b'nE8//VTdgwNKxn+YP3++C4KpdLmjaAkQBew3BQ8/cLNnWFu7woUfUPAdEEY6L7/8skrbiuKT'
+    b'Tz5hN3OiAYCiJUBUtduCt5BCyy44ObSuro5aQ64zt0D04HJGkcqUOYqWAOvXr+dIYF4rTaVS'
+    b'IQcOPIkjhgIIEBK+ta6AQ8klo/06EkVbCXAAQ+EdBKfIUFFRsQkbIUa8YsihtrZWtXIjfHtq'
+    b'+Zo1a0ikPIKVG4qWAHqs30iX4Z/y2vr27RsaAIIzF9IINuAEql5DkMbJZLJK+IYwMAE0HYXZ'
+    b'UyYoZh8gJJzKykpFgKqqKnsAKNCmIg/s/fvhhx/UwBFnEU2dOrVl4sSJnFWqjsNB9JEuez+g'
+    b'aAkQUe3ubrvtpsI/I0CDTZs22YQQcDDJXj104IEHumPHjtU5x/nxxx8VMcodRUsACCek2qHG'
+    b'47p83UJDwrg+A+0gLXzEiBHNe+65p9wTRErhr2jff0ehWCuAi0Lp7AlMy/c8j0K0VXesHf/7'
+    b'77+defPm6Zzj7LXXXlWDBw/mLGOFZcuWZe11B+WKom0BcOBi43vOC8BGCFAoCvBz08nk/XBe'
+    b'BuQRgdfU1HiNjY2JBtDbYkNUtfta8A7nBIwfP16k/s8//1CoeeEcrrdNSIDoIQMNoLMKvEer'
+    b'I4nlgB1GgKVLl2YffPBB/5577gkWLFgQKzQbUPl20xYCdOvWrbK6uloEt3bt2lg1Xl9fTw/P'
+    b'lOH26dOna48ePUL+QmICdhABuMZ/1KhRqcsvv9y7+uqr3YMOOigNEhSM3wlbtR955JFe9+7d'
+    b'xSTYkQCcPQo1zw7AhKixg1xOgRfZvkOwbt26Vp+hHNDhBIAggjvvvFOl0YrhzSs5uo888ojH'
+    b'uf7qQD4C+xhCQA9RQCwBdIdRHGzhZ9mRVFVVFdIKMBNddLps0eEE+O677/znn3+eH3ZUw7Et'
+    b'LUqTO88884xb6DMvtN8wGRKk2wInbO0QPWaAKEDU+1FHHeVC+J7uS7CJkac54gBz4vNrZSBb'
+    b'fGEljI4mQDB//nyVYAM2wjITM2AaYssHUfhlkFgHDcIPTQ0vAIaRQi6zpsAmDmGTJA4wL/6T'
+    b'Tz6ZHTFihMtP1d10002BXrG806BDCQAnS2bkNDe3ODfeeGPmvPPOg3xzslm0aBE4kd+EcdxD'
+    b'5YvK5wgghKfOA3l8Tg9XB4C46wFO+BD1rgrBabhHqA9h9erVzBcU6FtvveVfdNFFKUQafAcX'
+    b'psy75ZZbfJinnYYEHUqAuro6//XXX5dmN3XqVPfggw+WykMs7pIkOmuDH7CU62D/GcMroYMM'
+    b'bv/+/eVYbW1tM1RznkbQWkaB4wi8vkuXLtk999xTytMkkXvZgHbwZ8+enVNV0BzpdEptH330'
+    b'0dRXX30Va7pKER1KALQw1XJyOSfgzFxbAGhhnJmjc2HY6nrAgAEuBc80BJkaOHCg9OhBUFw/'
+    b'EBWir9cMKIwcOdLj9QgDKydMmGCbluh1Avggwbx585TvQu3BbgXzTG+//VYhzVNy6FACcC6+'
+    b'TjqTJ092evfuTY/ernSXLU2nQ7AJQIFT8DorvgQBU5GKEoAjgezq1VmnT58+0ito3YampqAQ'
+    b'4byqe7Is2H//8MMP32RM13vv/R8HmlS61NGRBAh+/fVXuf/o0aP9bt26uXvssUeoTJiJvGfg'
+    b'QM6WTtlCxJA3qAOTkMI9REtYrTVgg9ZpjgfEmg96+1DzOuc406dPd2bNmiVlfPHFF/xSqRCs'
+    b'lJFX+dsLcJScxYsX65wiABq1S1VOwYpweV4U8AsyUL9yjt3iCVs7FEDILOhZRMqBhB8gnj/M'
+    b'RAoEyqsDOH1BTc0iuR4mJBgzZgxVhzwItJtOlTY6jABNTU2MnaUSBw0apFoazIA7bdo02W+r'
+    b'agO0QFHZBB04nVRAXlptITLgHJ1SU8mV3ocz6FZXV8sBCD8d1R4E1funn34mN4bvAjPSO5gy'
+    b'ZYre4zjLly/XqdJGhxEAtt376KOPdM5xoPpVWAcN4MEUqH0ENEBeTx5aLwUmz4YWbPfgBYwK'
+    b'dFp1LlkqXmHjxo3NEJCQpmfPnqYMT/sDCoXIE1XviDqCLl26prjVu9T7YRNWTSWIDiNAQ0MD'
+    b'Va3UMCpPqXQIL4sWKQJcuvTnZvb86awC5BmSzK677hrK2/0ACCXzFoeAAM7ChQt1Tt1Pp8Jp'
+    b'aJo88hC4n5CEAGnA25QPMybnfvvtt+yu1rnSRYcRAPbVbtmB+bQLaxIqVY6tX7+hgo6czsai'
+    b'X79+dhcue+XU9DCitraWnT4hguB+vL/ck7ZfJ7lETHwAOHqZf//9N0QegM6r7Nt///397t27'
+    b'k7AeexRze5XmYvShc6WLDiMA4ntppQihSAC7pUnN0THUSUF0V7SRQgPYhPG0z2DDvgFNhmmq'
+    b'AcyBaB9GKQwjddaAoan0IrIPQU9EDUBEIQ9/x0jPRShpdBgB7BBwwIABnMhh8kGvXr2khXGl'
+    b'bnRcHk5Y7KIQgwgh6PGH3iOi1l20XEOQkPYA8siDe2VXr14tzwOnNUP1j6SL95DQEn5CKs5/'
+    b'KTV0CAFQ/z58ABECv/CF8EvnHPYGSuabb77h1KxQK2QYppMKtgrfEmzYsCH09TB7KnmcxrEB'
+    b'jeCBvPI8Y8eOTUGDqHrCc4SIuhUmIPQ+xYQOIQAq0f3pp5+koiEAVoDkI0JgOvQcsOnqE7G5'
+    b'nFLhITuNy1utUDiBUY2gU+rakNQi2oLg48n1djgJE6BTCsHvv//eqgmAH+Tzc/fPP//8pvff'
+    b'fz/Qw99FRYYOIQBUo19XV6dzakZu6KVhw2mTZV/UBEAthzQCzEdIaFDJYseJaBQRJZAt9EjZ'
+    b'nBUUWljCZ7E/IAHfheRT58MZtFU+h6zFJESBBtBy0kknOUcccYQ3Y8aMrkcffbQ7fPhw97HH'
+    b'HguammLXsnQKOoQAHKAxw8AEbH5IoLCltLsioPXr14cEGAFt+OaOA0DPBxAhQuWHahSN2n4v'
+    b'NRtIpxlS2mVzNDLkA9Ac0SzpLMlrkynUgkH02OdGZJGdNWtW6uOPP4YCCVWxe8kll3gPP/ww'
+    b'VyXJfToTHUIA2HBWlBAAjlSohUOl24TgGn/xCYho5VAn66QCNELoOK4PCdE+nS0QLVfKs/0B'
+    b'Atom6sixTuQGdtnwYzIDBw4UbQKVbhNRsGDBguCll17yQDzjJ8g1xFVXXeV98cUXoX1RgIj+'
+    b'woULM3PnznX4x5lVul63KzqEAJEBngCtLlTJUfKjldgC5m8E04mzEbqgb9++1AjmmrzVQSCE'
+    b'tMzdd99dzQbS2byyI9xi+BoyERC69PbAHFQcfPDBQiZogLz5BCQvBKbeH8/lTJo0iZGOD21A'
+    b'4UnhTzzxBJ8zVqCLFy/2zznnHGfChAnpo446ilPaHP5e8imnnOK89tprGXaz61PbjYIEoJ0q'
+    b'9IcX54uEa9KCXnqtcOihh7LiQg+MlkG7Kucg7AtpCKhQW0NQhYdsvt0qiUgYGKxatVKEFkM2'
+    b'livPE1XjIIB9b45eCnlYrq3SUW5eHXAc4b333pN7TJs2zR85cmQaRHAfeOABOf+pp55KcX1i'
+    b'FF9//TWjJu+VV15RcxFskFggQRoaxPnyyy991nN9fX1ToT80xI0wx6G6iyKPAGBlwHlwZ555'
+    b'pkMW2n/nnnuuSQd33323v2jRomxMJQQrV64UAfLTbN26dQuV06NHDw+qWd4uMjWLJkFadHV1'
+    b'dYAWvFWMb2raFDIJNqjGhw4dKvfTvX7yDmi1ts0PmSsIRNYnEHT0og4ohcJfNjU44IAD5L2O'
+    b'P/54litlvfjii9xI/ttvv83yZ3GZxjvnkZdA+Q58CA/neahbl+Tae++9U6NGjeI2PWbMaGxH'
+    b'pZmnr8V6njv3/cIkoMqy8fnnnxthbNHfvffem4VW0FcHajr39OnT5R633347l2Qrp8eA559x'
+    b'xhlyj/vuuy90HHk5duqppwZw1ELHITQ5zr958+bpIznY15911lktKE/92BDBe/Ge5vjs2bPl'
+    b'GIFwzQhJ/aEsu+zszTffTG2ljp122mnqW4Y2cL3xC9TfkiVLWvShAI3Fh3MYqt85c+Yw6mgG'
+    b'GVrgcKqyKyrS6thtt92W5Ucu4Gtk0ShZrjwblIPco62/E088UdV5HPI0AFonN7ywVRjtNHPm'
+    b'TA+hjXlpRgABNIO0ID0FLKTLUG6oE4WqVScV7CxVbvR4VI231iUL7WN68hR4L/t2kTrgbGI7'
+    b'oshCA9j39uB/iHbhoBOcyM0vAvzyyy+S32233Xycr3O5sqFZQ+9y+umnq9YKMqVxrUvHkVPn'
+    b'0XACLqIZNmyYC2J4F1xwQYpD57fccouq6xjlUBDQEjSjsVfkqcqxY8d68+fP9znrheqGlWWX'
+    b'RoHgQfz//e9/UnFXXnllesqUKfxN/xRsTwDbJsegwnVqMyhAVCyFqOJo2F2+FK/hn2KrThN5'
+    b'BNJqmKpZnfP7779TjfNd1Hm2nUblVuLl7evZL8Ct+qdNmDnOXyKT2P6EE07wevbsGbpWE0Kd'
+    b'88YbbwR4dg4WybPiWcRkwP9xcb3tzzj77LOP+/jjj2cvvvhie7+UQcfxjjvuYMNyrd5TgnMZ'
+    b'0pyVfNFFF/kgi4fwOcPOKBILx20By7v179+/ArJBleXmVOYBwt1qkPVQWWR6gMpmwQH8giy9'
+    b'b3qpzOs/H/Y9oy+zQSaLKp0xYwYsxyZ1XgsAtpuu3ADmRI4ZrFu3biMqQ65/6KGHqN+Mqs7e'
+    b'euutcuz+++/Xu3PAM7acf/75ZqwhuPTSS5tYpj6szjfH0DqDqIp/++23Qyqc8x4NQFwfLVyO'
+    b'Q4jKR9CHBXif7AsvvJBFeKzqEH9qC28/C+cvg+Mhk9cGeG5rf61ic1PZCkDo7sknnxxccskl'
+    b'NGvqK5zPPfech8rLvPrqq/osxzn77LMDhGFxzAtNzMALyzd/2QuIGFicQDqRvL8NtLgu0Day'
+    b'E/Lj+aocpH3YTQohFnTqRo8eLfffsGGD/QukSog6TVA4IcBE2sf5rSESXgHPnYXN1zll/jgb'
+    b'Oa+O4eB5IAo/Wcu5hy0fffRRCxfPQvgBvPwUjse31njw3Nb+WsU2EYBARXqXX365YjrVFs3F'
+    b'tddeW/n000+njOpiVyhfVmXyYVeuPChIybhe1OPgwYNDM4IJqjxbzdtEBpFCi0qAqBCpWuV8'
+    b'XCuTSnGdDwGKQKnuUU6ITAgLQ5XKeYU6ybQLT16OgwAhskTBPorx48dXwFRUjhgxIoVwOfSe'
+    b'OwKFhLNFoL8A1qo0WpHyF9ingxat+v9he/JakEbQtWtXidWpZm1nKmfScqCGiQOEplPh8ylM'
+    b'm0AQYijMI3C+CDlSVgpRgvgAEAo7kUIC79Wrlwu/Qu63fPlyeUCEgNzYBGhX/e4ItPcBXags'
+    b'F3bRB4tR9zA6sDr8VQ/6CGgthRhNz1bUMJwp33RYgAzNtgqPtsA42EIk7Dzjfp004HwE8eyp'
+    b'eiF0kkTB1iz2egIDEuCQQw4RAixevJg/bKnynJ2kdubAetDJ4sV2Yehxxx3nQYj8DkDm888/'
+    b'b6qpqQkiK3DyAMHYx1Ow3arlgQCuPZ8PXnRcC+YCUSFGQ0MDhRyrQfQEEFsw7pAhQ2RSiF6e'
+    b'pp4F29BIIAmtkwJoFHbR6pzDbxG7UP00g/6bb74p59P/sUPAYsV2U1EMl2ASKg466KBu/fr1'
+    b'a/O+aGnSCgkjNFQkNYOQA2o0KkBey95BERRCogydP6axDX0dLEI0BVxv388zDiicOO/rr7+W'
+    b'Z4eZyiMf4NoE4NT3BQsW+BwAmjNnjpR17LHHcg1C6LmLEduNAFsLqFcKyVRugFakfIKoOo8I'
+    b'S4EEAOFEMBC6zO9HK+YImhAgphHn+QUgnSITzqUApbxhw4bRBOSVzx+vPOyww+T6yy67LH3W'
+    b'WWfZRKP/w+dJCFAIiIHtkTQuElXPAnVuj8blaQoCEUd6+PDh4qzR6aP3b9LYtPpeAwYMsAUd'
+    b'rF27VvkJIFLI34jTHgTI511xxRWKZIx+oIHUSiE8qzr+yCOPBPBxil74RKcRALA1AD1w5RSC'
+    b'CKFWGJmGJYCmkHNwrZ0OOW7wFfIIhH22YOVbAnV1dSRCq+QzYC8he+wY/RigbOeGG27Izpgx'
+    b'g9mEAK2hqqoqyzn3OkvBq8qGGrZj+Og0rDaB6+2Kl49M20DLbunfv79Ijj1z3GoitEk+gvZ9'
+    b'5syZwbvvvpu95557nPvvv9+fP39+5tZbb/U42qlPK3p02oNSsBzG1FkzjTxAOGgLjK1RSGLD'
+    b'9hWifoMFF554HoGgwtOTJ0+SsnUsH0TnJbRFPpLgmGOOSYEIHA/xJk+enIZ/URIt36DTCAD1'
+    b'6qOyJEaH+lQC4YiY2gGMGzeOAy0hu6wR+vUw9huw/4BpaABR4UR0ChiRI8zmmcU68nDtsgEf'
+    b'zxjtQ9jp0GkEYA/bPvvsI+VzTByy8yEcMQHsHo0TIIHWJ8JZuHChGUHM+6WRCB8UQDx/6NCh'
+    b'cj3DSJat/QcF2HgXjmqn1c+OQme+oGuvEoYPUIkQjt60CIYagppCZ22wM8ceK5VY3nTqtAZ4'
+    b'7ilcL8JGFJBubGwMli1bJiaAz4bTSkqdbws6leH2YAln3nBsvb6+TgRDDVFoZCwSoskSL2wZ'
+    b'HpprOFwdRyCu87M1AL8p5MMHEG2DZ+OPVcf6HzsTOpUAcNCkfLQ+j4Mpa9aslUrXk0ljCRCn'
+    b'2onI/tAcPgtcIygEWrFiBZeDqYkuehcJkAJ52tQmpY5OJQBaoVT4unXr1IeZVq1aJc/ElTQ6'
+    b'mQf4CiFJm0jAjggmTBjP7lydC8MeqOEqpjfffJNfNJGy7YmjOzM6lQD8BjC/v6OzDuJpb/Xq'
+    b'1TqnPiqhU/nQ8b1cy4Ecbu2lXsOGDU/BlkuPoQ04eAHKVkImae68885KkE8dI6ABCpJvZ0Kn'
+    b'EgBCcCdNmqSECHXrLFmyhCuF1TGAdrqgEGCflcB1i+fyMKXqEQUIKQqZCYIePmL43MW583Cr'
+    b'XHEQfgAT0al1s6PQqS8JL58/5qRqn92ohBHC1KlTgz59+qh0HMyHn43wWvRwsunWJcy94gAN'
+    b'4k6cOFE0AP/M7C2EgCUxlLs90NksDw2t5oSQ87uOOOII9sQVlCDIE3LQTBiIrbwTzuGUroK2'
+    b'HAQQDUDhG4Vx/PHHs6OpMHt2InS6mmOod9JJJ6mq5xiNGVzhkjKgoBCi6t20drvVc8gZhCpI'
+    b'gL333tu7/vrr1Y04IsyyJ0+e7E+ZMqUshE90OgGqqqrc6667jlIPuCCCgr3wwguD/fffvy0h'
+    b'hBgA1U9BZ+HJSxdxdXV1JQgg/QpR0O+48sornVmzbgig9p2LL77Yf+KJJzhdu9PrZYcBFV4M'
+    b'8BECZrlM66mnnsrU19e3OZ8dgua8ATp+JEKA6xozmUzL9OnTzWQPtURsS4CWzyVjXJPQZrk7'
+    b'G4qF6Wpc4IorrvDOP//8VIG1BCGwqxYOpM6p1cxp+gF6YGerQE3A+5WL3bdRsqqO8f2wYcPE'
+    b'EYTg7S5gBd1XkKAVlLStM6EjwVYMVa5W6+pdIEnXUGdRgnyULAHg7dPDl7kCsN+cTNL84Ycf'
+    b'yr4hQ9Tn6MpOrW8NSpYADO/69u0rAz3Lli1r/ueff1IggZiFyvAXRRPEoGQJAPueHjlypPTz'
+    b'Q/VXmpk9uT1KS8TNJkpgoaR9AAjYFja7g+1On6B79+7SJ5AgHqVOAHHwstmM+bqH2ecinIwf'
+    b'C04gKGUChD7htmzZ8qyeWRzSCjqZoABKmQD8fo50+jQ2NvLr3fbYP2f1Jj5AGyhpE2DPC+R0'
+    b'Mi7M0Fn1ebaqqqqCA0EJcihpAqCFS09fXV2d+9JLL1WwQ4hAhFBwSnmCzShpAvTp00eNIjKt'
+    b'f9qVPx7BLMFE0gvYBkqaAL169ZJvB/ALM4E1R2Do0KHZcpjW3V6UNAHSuW8IKyEb4RvHf9Cg'
+    b'QTQHSU9gGyh1DeBxCZfOKuGbeX09e/YMfWcgQTxKXQPwS5xKAxjhm4+NwQTkDQ8nyEdJEwBh'
+    b'ID+troRshG9MgT1QlKAwSpoAgGtWF0WcQK4pSOz/FqDUCcCJn0oD2BHAtGnTWl1TkGAzSp4A'
+    b'e+21FzdK+uaDYocddpiabawyCVpFyRMA4R6/pa/S5sdL2lpTkGAzSp4AFRUV7oUXXkg/QEn/'
+    b'rrvuCsaNG5cIfwvBtXWbjWfpIuAS76amJvU7xYU+KpEgHzsLARJsI0reBCRoHxIClDkSApQ5'
+    b'EgKUORIClDkSApQ1HOf/AV135oydlYAtAAAAAElFTkSuQmCC')
+
 #------------------------------------------------------------------------------
 
 def main(fname=None):
@@ -465,7 +625,6 @@ def main(fname=None):
     app.SetTopWindow(frame)
     frame.Show()
     app.MainLoop()    
-
 
 
 if __name__ == "__main__":

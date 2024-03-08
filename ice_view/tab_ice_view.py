@@ -380,6 +380,8 @@ class TabIceView(tab_base.Tab, ice_view_ui.IceViewUI):
         minppm = ds.pts2ppm(dim0 - 1)
         ppmlim = (minppm, maxppm)
 
+        wx_util.configure_spin(self.FloatScale, 70, 8, 0.5, (0.0, 100000000.0))
+
         # The many controls on various tabs need configuration of
         # their size, # of digits displayed, increment and min/max. 
 
@@ -604,6 +606,19 @@ class TabIceView(tab_base.Tab, ice_view_ui.IceViewUI):
         maxppm = ds.pts2ppm(0)
         minppm = ds.pts2ppm(dim0 - 1)
         voxel = self.voxel
+
+        #-------------------------------------------------------------
+        # View Controls
+
+        self.SpinX.SetRange(1, dim1)
+        self.SpinY.SetRange(1, dim2)
+        self.SpinZ.SetRange(1, dim3)
+        self.SpinX.SetValue(voxel[0]+1)
+        self.SpinY.SetValue(voxel[1]+1)
+        self.SpinZ.SetValue(voxel[2]+1)
+
+        self.FloatScale.SetRange(0.0, 1000000000.0)
+        self.FloatScale.multiplier = 1.1
 
         #------------------------------------------------------------
         # Water Filter settings
@@ -876,10 +891,10 @@ class TabIceView(tab_base.Tab, ice_view_ui.IceViewUI):
         tmpx = self.SpinX.GetValue()-1
         tmpy = self.SpinY.GetValue()-1
         tmpz = self.SpinZ.GetValue()-1
-        dims = self.dataset.spectral_dims[::-1]
-        tmpx = max(0, min(dims[2]-1, tmpx))  # clip to range
-        tmpy = max(0, min(dims[1]-1, tmpy))
-        tmpz = max(0, min(dims[0]-1, tmpz))
+        dim0, dim1, dim2, dim3, _, _ = self.dataset.spectral_dims
+        tmpx = max(0, min(dim1-1, tmpx))  # clip to range
+        tmpy = max(0, min(dim2-1, tmpy))
+        tmpz = max(0, min(dim3-1, tmpz))
         self.SpinX.SetValue(tmpx+1)
         self.SpinY.SetValue(tmpy+1)
         self.SpinZ.SetValue(tmpz+1)

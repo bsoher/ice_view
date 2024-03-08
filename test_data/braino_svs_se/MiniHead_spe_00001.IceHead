@@ -1,0 +1,182 @@
+<XProtocol>
+{
+  <ParamMap."">
+  {
+    <ParamMap."CONTROL">
+    {
+      <ParamLong."AnatomicalSliceNo">{ }
+      <ParamLong."ChronSliceNo">{ }
+      <ParamLong."IsmrmrdSliceNo">{ }
+      <ParamLong."RelativeSeriesNo">{ }
+      <ParamLong."SeriesNo">{ }
+      <ParamString."SeriesInstanceUID">{ "1.3.12.2.1107.5.2.0.99923.3.2024030512084293504700060.0.0.0" }
+      <ParamBool."SpectroData">{ "true" }
+      <ParamLong."mainOrientation">{ 2 }
+      <ParamString."DicomEngineDimString">{ "1_1_1_1_1_1_1_1_1_1_1_1_36_1_1_1_1_1_0_1_1_1_1" }
+    }
+    <ParamMap."DICOM">
+    {
+      <ParamLong."NumberInSeries">{ 1 }
+      <ParamString."AcquisitionDate">{ "20220309" }
+      <ParamString."AcquisitionTime">{ "101308.557500" }
+      <ParamLong."AcquisitionNumber">{ 1 }
+      <ParamLong."EchoNumber">{ 1 }
+      <ParamLong."SliceNo">{ }
+      <ParamDouble."TR">{ 2000 }
+      <ParamDouble."TE">{ 30 }
+      <ParamDouble."SliceMeasurementDuration">{ 22000 }
+      <ParamString."SequenceDescription">{ "svs_se_30_meas1_avg12_pre0_inOff" }
+      <ParamDouble."TimeAfterStart">{ }
+      <ParamString."UsedChannelString">{ "X" }
+      <ParamArray."ImageTypeValue4">
+      {
+        <DefaultSize> 2
+        <MaxSize> 2147483647
+        <Default> <ParamString."">{ }
+        { "RESEARCH" }{ "ND" }
+      }
+      <ParamString."SequenceString">{ "svs_se" }
+      <ParamLong."EchoColumnPosition">{ }
+      <ParamLong."EchoLinePosition">{ }
+      <ParamLong."EchoPartitionPosition">{ 32 }
+      <ParamLong."RealDwellTime">{ 400000 }
+      <ParamLong."EchoTrainLength">{ 1 }
+      <ParamLong."NoOfAverages">{ 12 }
+      <ParamLong."NoOfPhaseEncodingSteps">{ 1 }
+      <ParamDouble."PercentPhaseFoV">{ 100 }
+      <ParamDouble."PercentSampling">{ 100 }
+      <ParamLong."ProtocolSliceNumber">{ }
+      <ParamLong."SequenceMask">{ }
+      <ParamLong."BitsStored">{ 16 }
+      <ParamString."CoilString">{ "HE1-4" }
+      <ParamString."ConfigFileInfo">{ }
+      <ParamString."ImageTypeValue3">{ "M" }
+      <ParamLong."PixelRepresentation">{ }
+      <ParamString."WIPSharedIdentifier">{ "FIRE MRD Image MetaAttributes" }
+      <ParamString."WIPSharedVersion">{ "1.0" }
+      <ParamString."WIPSharedData">{ "<?xml version=""1.0""?>
+<ismrmrdMeta>
+	<meta>
+		<name>DataRole</name>
+		<value>Spectroscopy</value>
+	</meta>
+	<meta>
+		<name>ImageProcessingHistory</name>
+		<value>FIRE</value>
+		<value>SPECTRO</value>
+		<value>PYTHON</value>
+	</meta>
+	<meta>
+		<name>Keep_image_geometry</name>
+		<value>1</value>
+	</meta>
+	<meta>
+		<name>SiemensControl_SpectroData</name>
+		<value>bool</value>
+		<value>true</value>
+	</meta>
+	<meta>
+		<name>SiemensDicom_RealDwellTime</name>
+		<value>int</value>
+		<value>400000</value>
+	</meta>
+</ismrmrdMeta>
+" }
+      <ParamString."UserDefinedImage">{ "<?xml version=""1.0""?>
+<ismrmrdMeta>
+	<meta>
+		<name>DataRole</name>
+		<value>Spectroscopy</value>
+	</meta>
+	<meta>
+		<name>ImageProcessingHistory</name>
+		<value>FIRE</value>
+		<value>SPECTRO</value>
+		<value>PYTHON</value>
+	</meta>
+	<meta>
+		<name>Keep_image_geometry</name>
+		<value>1</value>
+	</meta>
+	<meta>
+		<name>SiemensControl_SpectroData</name>
+		<value>bool</value>
+		<value>true</value>
+	</meta>
+	<meta>
+		<name>SiemensDicom_RealDwellTime</name>
+		<value>int</value>
+		<value>400000</value>
+	</meta>
+</ismrmrdMeta>
+" }
+      <ParamBool."ImageDirectSend">{ }
+      <ParamLong."DataPointColumns">{ 2048 }
+      <ParamLong."NoOfCols">{ 1 }
+      <ParamLong."NoOfRows">{ 1 }
+      <ParamArray."PixelSpacing">
+      {
+        <DefaultSize> 2
+        <MaxSize> 2147483647
+        <Default> <ParamDouble."">{ }
+        { 20 }{ 20 }
+      }
+      <ParamDouble."SliceThickness">{ 20 }
+      <ParamString."IceDimString">{ "1_1_1_1_1_1_1_1_1_1_1_1_36" }
+      <ParamArray."ColVec">
+      {
+        <DefaultSize> 3
+        <MaxSize> 3
+        <Default> <ParamDouble."">{ }
+        { }{ 1 }{ }
+      }
+      <ParamArray."RowVec">
+      {
+        <DefaultSize> 3
+        <MaxSize> 3
+        <Default> <ParamDouble."">{ }
+        { -1 }{ }{ }
+      }
+      <ParamArray."PosVec">
+      {
+        <DefaultSize> 3
+        <MaxSize> 3
+        <Default> <ParamDouble."">{ }
+        { }{ }{ }
+      }
+      <ParamArray."NormalVec">
+      {
+        <DefaultSize> 3
+        <MaxSize> 3
+        <Default> <ParamDouble."">{ }
+        { }{ }{ 1 }
+      }
+      <ParamString."PhaseEncodingDirection">{ "+COL" }
+      <ParamArray."PhaseVec">
+      {
+        <DefaultSize> 3
+        <MaxSize> 3
+        <Default> <ParamDouble."">{ }
+        { }{ 1 }{ }
+      }
+      <ParamArray."TablePosition">
+      {
+        <DefaultSize> 3
+        <MaxSize> 3
+        <Default> <ParamLong."">{ }
+        { }{ }{ -1235013 }
+      }
+      <ParamArray."PosVecSBCS">
+      {
+        <DefaultSize> 3
+        <MaxSize> 3
+        <Default> <ParamDouble."">{ }
+        { }{ }{ }
+      }
+      <ParamDouble."SliceLocation">{ }
+      <ParamBool."SwapReadPhase">{ }
+      <ParamString."FrameOfReferenceUID">{ "1.3.12.2.1107.5.2.50.167105.1.20220309095706599.0.0.0" }
+      <ParamString."SOPInstanceUID">{ "1.3.12.2.1107.5.2.0.99923.3.2024030512084293504700059" }
+    }
+  }
+}

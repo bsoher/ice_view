@@ -69,7 +69,7 @@ def water_filter_fir(chain):
     # Get filter cutoff in Hz in terms of Nyquist frequency,
     # 1/2T, where T is the time between data samples
     # Always do as lowpass, to simplify in removal part
-    cutoff = 2 * half_width / chain.sw
+    cutoff = 2 * half_width / chain._dataset.sw
 
     # FIR ripple is in db, and is converted to the approximate width
     # of the transition region (normalized so that 1 corresonds to pi)
