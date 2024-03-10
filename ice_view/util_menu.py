@@ -121,14 +121,19 @@ def _get_menu_data(main):
     # Gnome.
 
     study = (
-                ("O&pen ice_view...\tCTRL+O",   main.on_open),
+                ("O&pen...\tCTRL+O", (
+                    ("IceView XML", main.on_open_xml),
+                    common_menu.SEPARATOR,
+                    ("ICE Spectroscopy IceHead/spe File", main.on_open_spe),
+                    ("ICE Spectroscopy DICOM File", main.on_open_dicom))),
+                #("O&pen ice_view...\tCTRL+O",   main.on_open),
                 common_menu.SEPARATOR,
                 ("S&ave\tCTRL+S",       main.on_save_ice_view),
                 ("S&ave As...",         main.on_save_as_ice_view),
                 common_menu.SEPARATOR,
                 ("Close\tCTRL+W",       main.on_close_ice_view),
-                common_menu.SEPARATOR,
-                ("Import Processed CRT Data", main.on_import_data_crt),
+                #common_menu.SEPARATOR,
+                #("Import Processed CRT Data", main.on_import_data_crt),
                 common_menu.SEPARATOR,
                 ("&Exit",               main.on_self_close))
 

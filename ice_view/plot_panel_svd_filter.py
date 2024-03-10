@@ -5,8 +5,8 @@ import wx
 import numpy as np
 
 # Our modules
-import siview.common.util.misc as util_misc
-import siview.common.wx_gravy.plot_panel_spectrum as plot_panel_spectrum
+import ice_view.common.misc as util_misc
+import ice_view.common.plot_panel_spectrum as plot_panel_spectrum
 
 
 class PlotPanelSvdFilter(plot_panel_spectrum.PlotPanelSpectrum):

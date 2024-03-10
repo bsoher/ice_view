@@ -42,6 +42,8 @@ import ice_view.common.export as export
 import ice_view.common.wx_util as wx_util
 import ice_view.common.common_dialogs as common_dialogs
 
+from ice_view.common.common_dialogs import pickfile, save_as, message, E_OK
+
 from wx.lib.embeddedimage import PyEmbeddedImage
 
 
@@ -147,19 +149,63 @@ class Main(wx.Frame):
 
     ############    IceView menu
 
-    def on_import_data_crt(self, event):
+    def get_ice_pair(self, fname):
+        """ returns a hdr/dat filename pair based on ICE output rules"""
+        path = os.path.dirname(fname)
+        base, ext = fname.split('.')
+        num = base[-5:]
 
-        ini_name = "import_data_crt"
+        if ext.lower() == 'icehead':
+            fname_hdr = fname
+            # we have hdr, need binary fname
+            if base[-10:-5]=='_spe_':
+                fname_dat = os.path.join(path,'WriteToFile_'+num+'.spe')
+            elif base[-9:-5]=='_sc_':
+                fname_dat = fname_dat = os.path.join(path,'WriteToFile_'+num+'.sc')
+            elif base[-10:-5] == '_ima_':
+                fname_dat = fname_dat = os.path.join(path,'WriteToFile_' + num + '.ima')
+            else:
+                msg = 'File name does not contain "spe", "sc" of "ima", returning! - \n' + fname
+                message(msg, style=E_OK)
+                raise(ValueError(msg))
+        elif ext.lower() in ['spe', 'sc', 'ima']:
+            # we have binary, need hdr fname
+            fname_dat = fname
+            fname_hdr = fname_dat = os.path.join(path,'MiniHead_'+ext.lower()+'_'+num+'.IceHead')
+        else:
+            msg = 'This is not a *.spe, *.sc, *.ima or *.IceHead file, returning! - \n'+fname
+            message(msg, style=E_OK)
+            raise(ValueError(msg))
+
+        # we have both ICE files
+        return fname_hdr, fname_dat
+
+    def on_open_spe(self, event):
+
+        ini_name = "open_spe"
         default_path = util_ice_view_config.get_path(ini_name)
-        msg = 'Select file with Processed CRT Data'
-        filetype_filter = "(*.npy, *.*)|*.npy;*.*"
+        msg = 'Select ICE *.spe or *.IceHead Spectroscopy file'
+        filetype_filter = "(*.spe, *.IceHead, *.*)|*.spe;*.IceHead;*.*"
 
-        fname = common_dialogs.pickfile(message=msg,
-                                        default_path=default_path,
-                                        filetype_filter=filetype_filter)
+        fname = pickfile(message=msg, default_path=default_path, filetype_filter=filetype_filter)
         msg = ""
         if fname:
             try:
+                # - parse Icehead, get data params
+                fname_hdr, fname_dat = self.get_ice_pair(fname)
+
+                if not os.path.isfile(fname_hdr):
+                    msg = 'File does not exist, returning! - \n' + fname_hdr
+                    message(msg, style=E_OK)
+                    raise (ValueError(msg))
+                if not os.path.isfile(fname_dat):
+                    msg = 'File does not exist, returning! - \n' + fname_dat
+                    message(msg, style=E_OK)
+                    raise (ValueError(msg))
+
+                # - create MrsiDataRaw()
+
+
                 crt_dat = np.load(fname)
                 if crt_dat.shape == (512,24,24):
                     crt_dat = np.swapaxes(crt_dat,0,2)
@@ -171,7 +217,7 @@ class Main(wx.Frame):
                 msg = """Error (import_data_crt): Exception reading Numpy CRT dat file: \n"%s"."""%str(e)
 
             if msg:
-                common_dialogs.message(msg, default_content.APP_NAME+" - Import CRT Data", common_dialogs.E_OK)
+                message(msg, default_content.APP_NAME+" - Import CRT Data", E_OK)
             else:
                 path, _ = os.path.split(fname)
 
@@ -199,17 +245,66 @@ class Main(wx.Frame):
                 path, _ = os.path.split(fname)
                 util_ice_view_config.set_path(ini_name, path)
 
+    def on_open_dicom(self, event):
+
+        ini_name = "open_dicom"
+        default_path = util_ice_view_config.get_path(ini_name)
+        msg = 'Select ICE DICOM Spectroscopy file'
+        filetype_filter = "(*.dcm, *.*)|*.dcm;*.*"
+
+        fname = pickfile(message=msg, default_path=default_path, filetype_filter=filetype_filter)
+        msg = ""
+        if fname:
+            try:
+                crt_dat = np.load(fname)
+                if crt_dat.shape == (512,24,24):
+                    crt_dat = np.swapaxes(crt_dat,0,2)
+                if len(crt_dat.shape) != 3:
+                    msg = 'Error (import_data_crt): Wrong Dimensions, arr.shape = %d' % len(crt_dat.shape)
+                elif crt_dat.dtype not in [np.complex64, np.complex128]:
+                    msg = 'Error (import_data_crt): Wrong Dtype, arr.dtype = '+str(crt_dat.dtype)
+            except Exception as e:
+                msg = """Error (import_data_crt): Exception reading Numpy CRT dat file: \n"%s"."""%str(e)
+
+            if msg:
+                message(msg, default_content.APP_NAME+" - Import CRT Data", E_OK)
+            else:
+                path, _ = os.path.split(fname)
+
+                # bjs hack
+                crt_dat = crt_dat * np.exp(-1j*np.pi*90/180)
+                crt_dat *= 1e9
+
+                raw = mrsi_data_raw.MrsiDataRaw()
+                raw.data_sources = [fname,]
+                raw.data = crt_dat
+                raw.sw = 1250.0
+                raw.frequency = 123.9
+                raw.resppm = 4.7
+                raw.seqte = 110.0
+                raw.seqtr = 2000.0
+
+                dataset = mrsi_dataset.dataset_from_raw(raw)
+
+                self.notebook_ice_view.Freeze()
+                self.notebook_ice_view.add_ice_view_tab(dataset=dataset)
+                self.notebook_ice_view.Thaw()
+                self.notebook_ice_view.Layout()
+                self.update_title()
+
+                path, _ = os.path.split(fname)
+                util_ice_view_config.set_path(ini_name, path)
     
-    def on_open(self, event):
+    def on_open_xml(self, event):
         wx.BeginBusyCursor()
 
         ini_name = "save_viff"
         default_path = util_ice_view_config.get_path(ini_name)
 
         filetype_filter=default_content.APP_NAME+" (*.xml,*.xml.gz,*.viff,*.vif)|*.xml;*.xml.gz;*.viff;*.vif"
-        filename = common_dialogs.pickfile(filetype_filter=filetype_filter,
-                                            multiple=False,
-                                            default_path=default_path)
+        filename = pickfile(filetype_filter=filetype_filter,
+                            multiple=False,
+                            default_path=default_path)
         if filename:
             msg = ""
             try:
@@ -220,7 +315,7 @@ class Main(wx.Frame):
                 msg = """The file "%s" isn't valid Vespa Interchange File Format.""" % filename
 
             if msg:
-                common_dialogs.message(msg, "MRI_Timeseries - Open File", common_dialogs.E_OK)
+                message(msg, "MRI_Timeseries - Open File", E_OK)
             else:
                 # Time to rock and roll!
                 wx.BeginBusyCursor()
@@ -240,7 +335,7 @@ class Main(wx.Frame):
                     util_ice_view_config.set_path(ini_name, path)
                 else:
                     msg = """The file "%s" didn't contain any MRI_Timeseries.""" % filename
-                    common_dialogs.message(msg)
+                    message(msg)
                 
         wx.EndBusyCursor()                
 
@@ -263,9 +358,9 @@ class Main(wx.Frame):
             # changed to ".xml".
             filename = os.path.splitext(filename)[0] + ".xml"
 
-            filename = common_dialogs.save_as("Save As XML/VIFF (Vespa Interchange Format File)",
-                                              "VIFF/XML files (*.xml)|*.xml",
-                                              path, filename)
+            filename = save_as("Save As XML/VIFF (Vespa Interchange Format File)",
+                                  "VIFF/XML files (*.xml)|*.xml",
+                                  path, filename)
 
         if filename:
             dataset.dataset_filename = filename
@@ -293,7 +388,7 @@ class Main(wx.Frame):
                 except Exception as e:
                     msg = """Error (load_on_start): Exception reading Numpy CRT dat file: \n"%s"."""%str(e)
                 if msg:
-                    common_dialogs.message(msg, default_content.APP_NAME+" - Load on Start", common_dialogs.E_OK)
+                    message(msg, default_content.APP_NAME+" - Load on Start", E_OK)
                     return
         else:
             # TODO bjs - better error/warning reporting
@@ -307,7 +402,7 @@ class Main(wx.Frame):
             msg = 'Error (load_on_start): Wrong Dtype, arr.dtype = '+str(crt_dat.dtype)
         
         if msg:
-            common_dialogs.message(msg, default_content.APP_NAME+" - Load on Start", common_dialogs.E_OK)
+            message(msg, default_content.APP_NAME+" - Load on Start", E_OK)
         else:
             path, _ = os.path.split(fname)
 
@@ -446,7 +541,7 @@ class Main(wx.Frame):
             msg = """I can't write the file "%s".""" % filename
 
         if msg:
-            common_dialogs.message(msg, style=common_dialogs.E_OK)
+            message(msg, style=E_OK)
         else:
             # dataset.filename is an attribute set only at run-time to maintain
             # the name of the VIFF file that was read in rather than deriving 
