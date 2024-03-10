@@ -40,7 +40,8 @@ import ice_view.util_ice_view_config as util_ice_view_config
 import ice_view.common.misc as misc
 import ice_view.common.export as export
 import ice_view.common.wx_util as wx_util
-import ice_view.common.common_dialogs as common_dialogs
+import ice_view.common.parse_xprot as parse_xprot
+
 
 from ice_view.common.common_dialogs import pickfile, save_as, message, E_OK
 
@@ -203,8 +204,21 @@ class Main(wx.Frame):
                     message(msg, style=E_OK)
                     raise (ValueError(msg))
 
+                with open(fname_hdr) as f:
+                    buffer = f.read()
+                hdr1 = parse_xprot.parse_xprot_wtc(buffer)
+                hdr2 = parse_xprot.parse_xprot(buffer)
+
                 # - create MrsiDataRaw()
 
+                npts = int(hdr1['DataPointColumns'])
+                dwell = float(hdr1['RealDwellTime']) * 1e-9
+                avgs = int(hdr1['NoOfAverages'])
+                tr = float(hdr1['TR'])
+                te = float(hdr1['TE'])
+                sequ = str(hdr1['SequenceString'])
+
+                sw = 1.0/dwell
 
                 crt_dat = np.load(fname)
                 if crt_dat.shape == (512,24,24):

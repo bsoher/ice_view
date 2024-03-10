@@ -1,4 +1,6 @@
 
+
+import re
 import regex as rx
 from itertools import chain
 import os.path as op
@@ -37,43 +39,38 @@ def try_cast(value, key):
     return value
 
 
-def parse_array_objs(arrs):
-
-    for arr in arrs:
-        t = rx.findall(r'ParamArray\."(\w+)"', arr.group())
-        if t == []:
-            continue
-        key = t[0]
-
-
-
-
-    r = arrs
-
-    return r
+# def parse_array_objs(arrs):
+#
+#     for arr in arrs:
+#         t = rx.findall(r'ParamArray\."(\w+)"', arr.group())
+#         if t == []:
+#             continue
+#         key = t[0]
+#
+#     r = arrs
+#
+#     return r
 
 
 def parse_xprot(buffer):
     xprot = {}
-    tokens = rx.finditer(r'<Param(?:Bool|Long|String)\."(\w+)">\s*{([^}]*)', buffer)
-    tokensDouble = rx.finditer(r'<ParamDouble\."(\w+)">\s*{\s*(<Precision>\s*[0-9]*)?\s*([^}]*)', buffer)
-    tokensArray = rx.finditer(r"(?s)(?=\<ParamArray\.\".*\"\>\{)(?:(?=.*?\{(?!.*?\1)(.*\}(?!.*\2).*))(?=.*?\}(?!.*?\2)(.*)).)+?.*?(?=\1)[^{]*(?=\2$)", buffer)
+    tokens = re.finditer(r'<Param(?:Bool|Long|String)\."(\w+)">\s*{([^}]*)', buffer)
+    tokensDouble = re.finditer(r'<ParamDouble\."(\w+)">\s*{\s*(<Precision>\s*[0-9]*)?\s*([^}]*)', buffer)
+    #tokensArray = re.finditer(r"(?s)(?=\<ParamArray\.\".*\"\>\{)(?:(?=.*?\{(?!.*?\1)(.*\}(?!.*\2).*))(?=.*?\}(?!.*?\2)(.*)).)+?.*?(?=\1)[^{]*(?=\2$)", buffer)
 
     #tokensArray = rx.finditer(r"(?s)(?=\<ParamArray\.\".*\"\>\{)(?:(?=.*?\{(?!.*?\1)(.*\}(?!.*\2).*))(?=.*?\}(?!.*?\2)(.*)).)+?.*?(?=\1)[^{]*(?=\2$)", buffer)
     # r'<ParamArray\."(\w+)">\s+{\s+<Visible>.\"(true|false)\"\s+<MinSize>.(\d+)\s+<MaxSize>.(\d+)\s+<Default>.<(\w+).\"(\w*)\">',
     # r'<ParamArray\."(\w+)">\s+{([^}]*)',
-
-    t_arr = [item for item in tokensArray]
-
-    arrs = parse_array_objs(t_arr)
+    #t_arr = [item for item in tokensArray]
+    #arrs = parse_array_objs(t_arr)
 
     alltokens = chain(tokens, tokensDouble)
 
     for t in alltokens:
         name = t.group(1)
 
-        value = rx.sub(r'("*)|( *<\w*> *[^\n]*)', '', t.groups()[-1])
-        value = rx.sub(r'[\t\n\r\f\v]*', '', value.strip())
+        value = re.sub(r'("*)|( *<\w*> *[^\n]*)', '', t.groups()[-1])
+        value = re.sub(r'[\t\n\r\f\v]*', '', value.strip())
 
         if name.startswith('a'):
             out = list()
@@ -95,7 +92,7 @@ def parse_xprot_wtc(buffer):
 
     # captured groups are 1: name, 2: value.
     # param type isn't that useful, since integer values are often stored in string types
-    alltokens = rx.finditer(
+    alltokens = re.finditer(
         r'<Param(?:Bool|Long|String|Double)\."(\w+)">\s*{\s*(?:<Precision>\s*[0-9]*)?\s*([^}]*)',
         buffer
     )
@@ -120,8 +117,8 @@ def parse_xprot_wtc(buffer):
     return xprot
 
 
-parse_xprot.re_repeated_whitespace = rx.compile(r'\s+')
-parse_xprot.re_quotes_and_nested_tags = rx.compile(r'("+)|( *<\w*> *[^\n]*)')
+parse_xprot.re_repeated_whitespace = re.compile(r'\s+')
+parse_xprot.re_quotes_and_nested_tags = re.compile(r'("+)|( *<\w*> *[^\n]*)')
 
 
 # Test code ----------------------------------------------------------------------
