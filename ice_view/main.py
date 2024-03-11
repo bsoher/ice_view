@@ -26,6 +26,10 @@ import wx
 import wx.adv as wx_adv
 import wx.lib.agw.aui as aui        # NB. wx.aui version throws odd wxWidgets exception on Close/Exit
 import numpy as np
+import pydicom
+import pydicom.dicomio
+from pydicom.values import convert_numbers
+
 
 # Our modules
 import ice_view.util_menu as util_menu
@@ -44,6 +48,7 @@ import ice_view.common.parse_xprot as parse_xprot
 
 
 from ice_view.common.common_dialogs import pickfile, save_as, message, E_OK
+from ice_view.util_ice_view import get_spe_pair, is_dicom, transformation_matrix
 
 from wx.lib.embeddedimage import PyEmbeddedImage
 
@@ -61,18 +66,15 @@ class MyFileDropTarget(wx.FileDropTarget):
             return
         item = filenames[0]
         if os.path.isfile(item):
-            txt0 = "Valid file path dropped"
-            txt1 = str(item)
-            # self.frame.TextSourceDirectory.SetLabelText(item)
-            # self.frame.path = item
+            if is_dicom(item):
+                self.frame.open_dicom(item)
+            else:
+                self.frame.open_spe(item)
         else:
-            txt0 = "Object dropped was INVALID file path"
-            txt1 = "Try File->Import"
-
-        self.frame.statusbar.SetStatusText((txt0), 0)
-        self.frame.statusbar.SetStatusText((txt1), 1)
-
-        # self.frame.update_log(txt)
+            txt0 = "Object was NOT a File"
+            txt1 = "Try File->Open"
+            self.frame.statusbar.SetStatusText((txt0), 0)
+            self.frame.statusbar.SetStatusText((txt1), 1)
 
         return True
 
@@ -150,36 +152,7 @@ class Main(wx.Frame):
 
     ############    IceView menu
 
-    def get_ice_pair(self, fname):
-        """ returns a hdr/dat filename pair based on ICE output rules"""
-        path = os.path.dirname(fname)
-        base, ext = fname.split('.')
-        num = base[-5:]
 
-        if ext.lower() == 'icehead':
-            fname_hdr = fname
-            # we have hdr, need binary fname
-            if base[-10:-5]=='_spe_':
-                fname_dat = os.path.join(path,'WriteToFile_'+num+'.spe')
-            elif base[-9:-5]=='_sc_':
-                fname_dat = fname_dat = os.path.join(path,'WriteToFile_'+num+'.sc')
-            elif base[-10:-5] == '_ima_':
-                fname_dat = fname_dat = os.path.join(path,'WriteToFile_' + num + '.ima')
-            else:
-                msg = 'File name does not contain "spe", "sc" of "ima", returning! - \n' + fname
-                message(msg, style=E_OK)
-                raise(ValueError(msg))
-        elif ext.lower() in ['spe', 'sc', 'ima']:
-            # we have binary, need hdr fname
-            fname_dat = fname
-            fname_hdr = fname_dat = os.path.join(path,'MiniHead_'+ext.lower()+'_'+num+'.IceHead')
-        else:
-            msg = 'This is not a *.spe, *.sc, *.ima or *.IceHead file, returning! - \n'+fname
-            message(msg, style=E_OK)
-            raise(ValueError(msg))
-
-        # we have both ICE files
-        return fname_hdr, fname_dat
 
     def on_open_spe(self, event):
 
@@ -191,73 +164,71 @@ class Main(wx.Frame):
         fname = pickfile(message=msg, default_path=default_path, filetype_filter=filetype_filter)
         msg = ""
         if fname:
-            try:
-                # - parse Icehead, get data params
-                fname_hdr, fname_dat = self.get_ice_pair(fname)
+            self.open_spe(fname)
 
-                if not os.path.isfile(fname_hdr):
-                    msg = 'File does not exist, returning! - \n' + fname_hdr
-                    message(msg, style=E_OK)
-                    raise (ValueError(msg))
-                if not os.path.isfile(fname_dat):
-                    msg = 'File does not exist, returning! - \n' + fname_dat
-                    message(msg, style=E_OK)
-                    raise (ValueError(msg))
 
-                with open(fname_hdr) as f:
-                    buffer = f.read()
-                hdr1 = parse_xprot.parse_xprot_wtc(buffer)
-                hdr2 = parse_xprot.parse_xprot(buffer)
+    def open_spe(self, fname, ini_name='open_spe'):
 
-                # - create MrsiDataRaw()
+        path = os.path.dirname(fname)
+        try:
+            # given one file name, get ICE file pair names and check if exists
+            fname_hdr, fname_dat = get_spe_pair(fname)
 
-                npts = int(hdr1['DataPointColumns'])
-                dwell = float(hdr1['RealDwellTime']) * 1e-9
-                avgs = int(hdr1['NoOfAverages'])
-                tr = float(hdr1['TR'])
-                te = float(hdr1['TE'])
-                sequ = str(hdr1['SequenceString'])
+            if not os.path.isfile(fname_hdr):
+                msg = 'File does not exist, returning! - \n' + fname_hdr
+                message(msg, style=E_OK)
+                raise (ValueError(msg))
+            if not os.path.isfile(fname_dat):
+                msg = 'File does not exist, returning! - \n' + fname_dat
+                message(msg, style=E_OK)
+                raise (ValueError(msg))
 
-                sw = 1.0/dwell
+            # parse header, get data params
+            with open(fname_hdr) as f:
+                buffer = f.read()
+            hdr = parse_xprot.parse_xprot(buffer)
+            npts  = int(hdr['DataPointColumns'])
+            dwell = float(hdr['RealDwellTime']) * 1e-9
+            avgs  = int(hdr['NoOfAverages'])
+            tr    = float(hdr['TR'])
+            te    = float(hdr['TE'])
+            sequ  = str(hdr['SequenceString'])
+            sw    = 1.0/dwell
 
-                crt_dat = np.load(fname)
-                if crt_dat.shape == (512,24,24):
-                    crt_dat = np.swapaxes(crt_dat,0,2)
-                if len(crt_dat.shape) != 3:
-                    msg = 'Error (import_data_crt): Wrong Dimensions, arr.shape = %d' % len(crt_dat.shape)
-                elif crt_dat.dtype not in [np.complex64, np.complex128]:
-                    msg = 'Error (import_data_crt): Wrong Dtype, arr.dtype = '+str(crt_dat.dtype)
-            except Exception as e:
-                msg = """Error (import_data_crt): Exception reading Numpy CRT dat file: \n"%s"."""%str(e)
+            # read binary data file
+            data = np.fromfile(fname_dat, dtype=np.complex64)
+            if data.shape != (npts,) :
+                msg = 'Error (open_spe): Wrong Dimensions, data.shape = %s' % str(data.shape)
+                raise (ValueError(msg))
 
-            if msg:
-                message(msg, default_content.APP_NAME+" - Import CRT Data", E_OK)
-            else:
-                path, _ = os.path.split(fname)
+            # bjs hack
+            data = data * np.exp(-1j*np.pi*90/180)
+            data *= 100
 
-                # bjs hack
-                crt_dat = crt_dat * np.exp(-1j*np.pi*90/180)
-                crt_dat *= 1e9
+            raw = mrsi_data_raw.MrsiDataRaw()
+            raw.data_sources = [fname_hdr,]
+            raw.data = data
+            raw.sw = sw
+            raw.frequency = 123.9
+            raw.resppm = 4.7
+            raw.seqte = te
+            raw.seqtr = tr
 
-                raw = mrsi_data_raw.MrsiDataRaw()
-                raw.data_sources = [fname,]
-                raw.data = crt_dat
-                raw.sw = 1250.0
-                raw.frequency = 123.9
-                raw.resppm = 4.7
-                raw.seqte = 110.0
-                raw.seqtr = 2000.0
+            dataset = mrsi_dataset.dataset_from_raw(raw)
 
-                dataset = mrsi_dataset.dataset_from_raw(raw)
+        except Exception as e:
+            msg = """Error (open_spe): Exception reading SPE file, returning! \n"%s"."""%str(e)
+            message(msg, style=E_OK)
+            return
 
-                self.notebook_ice_view.Freeze()
-                self.notebook_ice_view.add_ice_view_tab(dataset=dataset)
-                self.notebook_ice_view.Thaw()
-                self.notebook_ice_view.Layout()
-                self.update_title()
+        self.notebook_ice_view.Freeze()
+        self.notebook_ice_view.add_ice_view_tab(dataset=dataset)
+        self.notebook_ice_view.Thaw()
+        self.notebook_ice_view.Layout()
+        self.update_title()
 
-                path, _ = os.path.split(fname)
-                util_ice_view_config.set_path(ini_name, path)
+        util_ice_view_config.set_path(ini_name, path)
+
 
     def on_open_dicom(self, event):
 
@@ -269,45 +240,84 @@ class Main(wx.Frame):
         fname = pickfile(message=msg, default_path=default_path, filetype_filter=filetype_filter)
         msg = ""
         if fname:
-            try:
-                crt_dat = np.load(fname)
-                if crt_dat.shape == (512,24,24):
-                    crt_dat = np.swapaxes(crt_dat,0,2)
-                if len(crt_dat.shape) != 3:
-                    msg = 'Error (import_data_crt): Wrong Dimensions, arr.shape = %d' % len(crt_dat.shape)
-                elif crt_dat.dtype not in [np.complex64, np.complex128]:
-                    msg = 'Error (import_data_crt): Wrong Dtype, arr.dtype = '+str(crt_dat.dtype)
-            except Exception as e:
-                msg = """Error (import_data_crt): Exception reading Numpy CRT dat file: \n"%s"."""%str(e)
-
-            if msg:
-                message(msg, default_content.APP_NAME+" - Import CRT Data", E_OK)
+            if is_dicom(fname):
+                self.open_dicom(fname)
             else:
-                path, _ = os.path.split(fname)
+                msg = 'File selected is not DICOM, returning! - \n' + fname
+                message(msg, style=E_OK)
 
-                # bjs hack
-                crt_dat = crt_dat * np.exp(-1j*np.pi*90/180)
-                crt_dat *= 1e9
+    def open_dicom(self, fname, ini_name='open_dicom'):
 
-                raw = mrsi_data_raw.MrsiDataRaw()
-                raw.data_sources = [fname,]
-                raw.data = crt_dat
-                raw.sw = 1250.0
-                raw.frequency = 123.9
-                raw.resppm = 4.7
-                raw.seqte = 110.0
-                raw.seqtr = 2000.0
+        path = os.path.dirname(fname)
+        try:
+            ds = pydicom.dicomio.read_file(fname)
 
-                dataset = mrsi_dataset.dataset_from_raw(raw)
+            data_shape = (1, 1, ds['DataPointRows'].value, ds['DataPointColumns'].value)
 
-                self.notebook_ice_view.Freeze()
-                self.notebook_ice_view.add_ice_view_tab(dataset=dataset)
-                self.notebook_ice_view.Thaw()
-                self.notebook_ice_view.Layout()
-                self.update_title()
+            dataf = convert_numbers(ds['SpectroscopyData'].value, True, 'f')  # (0x5600, 0x0020)
+            data_iter = iter(dataf)
+            data = [complex(r, i) for r, i in zip(data_iter, data_iter)]
+            complex_data = np.fromiter(data, dtype=np.complex64)
+            complex_data.shape = data_shape
+            complex_data = complex_data.conjugate()
 
-                path, _ = os.path.split(fname)
-                util_ice_view_config.set_path(ini_name, path)
+            try:
+
+                iorient = ds[0x5200, 0x9230][0][0x0020, 0x9116][0]['ImageOrientationPatient'].value
+                row_vector = np.array(iorient[0:3])
+                col_vector = np.array(iorient[3:6])
+                voi_position = ds[0x5200, 0x9230][0][0x0020, 0x9113][0]['ImagePositionPatient'].value
+
+                voxel_size = [ds[0x0018, 0x9126][0]['SlabThickness'].value,
+                              ds[0x0018, 0x9126][1]['SlabThickness'].value,
+                              ds[0x0018, 0x9126][2]['SlabThickness'].value]
+
+                tform = transformation_matrix(row_vector, col_vector, voi_position, voxel_size)
+
+            except:
+                # this will trigger default
+                voxel_size = np.array([20.0, 20.0, 20.0])
+                tform = None
+
+            sw = ds["SpectralWidth"].value,
+            frequency = ds["TransmitterFrequency"].value,
+            resppm = 4.7,
+            echopeak = 0.0,
+            nucleus = ds["ResonantNucleus"].value,
+            te = float(ds[0x5200, 0x9229][0][0x0018, 0x9114][0]['EffectiveEchoTime'].value),
+            tr = 10000.0 #float(ds[0x5200, 0x9229][0][0x0018, 0x9112][0]['RepetitionTime'].value),
+            voxel_dimensions = voxel_size,
+            header = str(ds),
+            transform = tform,
+            data = complex_data
+
+            raw = mrsi_data_raw.MrsiDataRaw()
+            raw.data_sources = [fname,]
+            raw.data = data
+            raw.sw = sw[0]
+            raw.frequency = frequency[0]
+            raw.resppm = resppm[0]
+            raw.seqte = te[0]
+            raw.seqtr = tr
+
+            dataset = mrsi_dataset.dataset_from_raw(raw)
+
+        except Exception as e:
+            msg = """Error (open_spe): Exception reading DICOM file, returning! \n"%s"."""%str(e)
+            message(msg, style=E_OK)
+            return
+
+        self.notebook_ice_view.Freeze()
+        self.notebook_ice_view.add_ice_view_tab(dataset=dataset)
+        self.notebook_ice_view.Thaw()
+        self.notebook_ice_view.Layout()
+        self.update_title()
+
+        util_ice_view_config.set_path(ini_name, path)
+
+
+
+
     
     def on_open_xml(self, event):
         wx.BeginBusyCursor()
@@ -329,7 +339,7 @@ class Main(wx.Frame):
                 msg = """The file "%s" isn't valid Vespa Interchange File Format.""" % filename
 
             if msg:
-                message(msg, "MRI_Timeseries - Open File", E_OK)
+                message(msg, title="MRI_Timeseries - Open File", style=E_OK)
             else:
                 # Time to rock and roll!
                 wx.BeginBusyCursor()
@@ -402,7 +412,7 @@ class Main(wx.Frame):
                 except Exception as e:
                     msg = """Error (load_on_start): Exception reading Numpy CRT dat file: \n"%s"."""%str(e)
                 if msg:
-                    message(msg, default_content.APP_NAME+" - Load on Start", E_OK)
+                    message(msg, title=default_content.APP_NAME+" - Load on Start", style=E_OK)
                     return
         else:
             # TODO bjs - better error/warning reporting
@@ -416,7 +426,7 @@ class Main(wx.Frame):
             msg = 'Error (load_on_start): Wrong Dtype, arr.dtype = '+str(crt_dat.dtype)
         
         if msg:
-            message(msg, default_content.APP_NAME+" - Load on Start", E_OK)
+            message(msg, title=default_content.APP_NAME+" - Load on Start", style=E_OK)
         else:
             path, _ = os.path.split(fname)
 

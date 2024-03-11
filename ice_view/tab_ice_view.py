@@ -380,7 +380,11 @@ class TabIceView(tab_base.Tab, ice_view_ui.IceViewUI):
         minppm = ds.pts2ppm(dim0 - 1)
         ppmlim = (minppm, maxppm)
 
-        wx_util.configure_spin(self.FloatScale, 70, 8, 0.5, (0.0, 100000000.0))
+        wx_util.configure_spin(self.SpinX, 60)
+        wx_util.configure_spin(self.SpinY, 60)
+        wx_util.configure_spin(self.SpinZ, 60)
+
+        wx_util.configure_spin(self.FloatScale, 110, 8, 0.5, (0.0, 100000000.0))
 
         # The many controls on various tabs need configuration of
         # their size, # of digits displayed, increment and min/max. 

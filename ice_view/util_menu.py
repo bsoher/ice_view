@@ -121,12 +121,14 @@ def _get_menu_data(main):
     # Gnome.
 
     study = (
-                ("O&pen...\tCTRL+O", (
-                    ("IceView XML", main.on_open_xml),
-                    common_menu.SEPARATOR,
-                    ("ICE Spectroscopy IceHead/spe File", main.on_open_spe),
-                    ("ICE Spectroscopy DICOM File", main.on_open_dicom))),
-                #("O&pen ice_view...\tCTRL+O",   main.on_open),
+                # ("O&pen...\tCTRL+O", (
+                #     ("IceView XML", main.on_open_xml),
+                #     common_menu.SEPARATOR,
+                #     ("ICE Spectroscopy IceHead/spe File", main.on_open_spe),
+                #     ("ICE Spectroscopy DICOM File", main.on_open_dicom))),
+                ("O&pen ICE SPE File\tCTRL+O",   main.on_open_spe),
+                ("O&pen ICE DICOM File\tCTRL+D", main.on_open_dicom),
+                ("Open IceView XML File", main.on_open_xml),
                 common_menu.SEPARATOR,
                 ("S&ave\tCTRL+S",       main.on_save_ice_view),
                 ("S&ave As...",         main.on_save_as_ice_view),
