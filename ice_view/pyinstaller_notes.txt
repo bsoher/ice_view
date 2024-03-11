@@ -1,4 +1,35 @@
 
+THis worked for IceView - 3/11/2024
+-------------------------------------------------
+
+> pyinstaller --collect-submodules=pydicom --add-data ice_viewscreen.png:. main.py
+
+
+
+From Washout Version 2.0 - 2024_03_04 - bundling to PyInstaller
+--------------------------------------------------------------------------------------
+- Standard >pyinstaller dcm2dir.py call gave error when I tried to run it
+  - was missing some imports from pydicom
+  - searched online and found some others with this issue
+- pyinstaller -F --collect-submodules=pydicom temp.py
+  - was suggested solution
+  - https://github.com/pyinstaller/pyinstaller/issues/6400
+- Another option was to run GUI app without a cmd window showing
+  - pyinstaller -F --noconsole --collect-submodules=pydicom dcm2dirs.py
+  - NB. -F here is for 'onefile' distrubution
+- Added functionality
+  - config now reads INI file saved into AppData\Roaming (only on Win for now)
+  - saves last app position and size
+  - save path of last opened dir, and last sorted dir
+  - does not save path of directories dropped on app unless also sorted
+
+
+
+
+===============================================
+Original Notes
+===============================================
+
 1. Install PyInstaller (need 2.1 or later to make RtView and Listener work)
 2. Install PyWin32 (a PyInstaller dependency)
 

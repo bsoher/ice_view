@@ -13,7 +13,7 @@ DESCRIPTION = """IceView is a GUI based application for viewing Siemens ICE outp
 
 LONG_DESCRIPTION = """
 IceView is a software package written in Python that allows the user to 
-visualize Siemens *.ImaHeader ICE output files.
+visualize Siemens ICE spectroscopy SPE and DICOM output files.
 """
 MAINTAINER = "Dr. Brian J. Soher"
 MAINTAINER_EMAIL = "bsoher ~at~ briansoher ~dot com~"

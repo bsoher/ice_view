@@ -38,6 +38,7 @@ class NotebookIceView(notebook_base.BaseAuiNotebook):
     
     _path = os.path.join(_path, "ice_viewscreen.png")
     
+    
     WELCOME_TAB_TEXT = """
     <html><body>
     <h1>Welcome to "%s"</h1>
