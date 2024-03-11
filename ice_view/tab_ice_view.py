@@ -21,6 +21,7 @@ from xml.etree.cElementTree import Element
 import wx
 import wx.grid as gridlib
 import wx.lib.agw.aui as aui
+import wx.stc as stc
 import numpy as np
 from scipy.fft import fft, fftshift
 from wx.lib.mixins.listctrl import CheckListCtrlMixin, ColumnSorterMixin
@@ -593,6 +594,16 @@ class TabIceView(tab_base.Tab, ice_view_ui.IceViewUI):
         wx_util.configure_spin(self.FloatSvdExcludeLipidStart, 50, 2, 0.5, ppmlim)
         wx_util.configure_spin(self.FloatSvdExcludeLipidEnd,   50, 2, 0.5, ppmlim)
 
+        #------------------------------------------------------------
+        # Header Control
+
+        self.view_hdr = stc.StyledTextCtrl(self.PanelSTC)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.view_hdr, 1, wx.LEFT | wx.TOP | wx.EXPAND)
+        self.PanelSTC.SetSizer(sizer)
+        self.view_hdr.Fit()
+
 
     def populate_controls(self):
         """ 
@@ -738,6 +749,15 @@ class TabIceView(tab_base.Tab, ice_view_ui.IceViewUI):
         else:
             self.FloatSvdExcludeLipidStart.Disable()
             self.FloatSvdExcludeLipidEnd.Disable()
+
+        if ds.blocks['raw'].headers:
+            hdr = ds.blocks['raw'].headers[0]
+        else:
+            hdr = "No Header"
+
+        self.nhdr = len(ds.blocks['raw'].headers[0])
+        self.view_hdr.SetText(ds.blocks['raw'].headers[0])
+        self.view_hdr.SetReadOnly(True)
 
         # ------------------------------------------------------------
         # Global controls
@@ -1401,6 +1421,61 @@ class TabIceView(tab_base.Tab, ice_view_ui.IceViewUI):
         self._update_svd_gui = True
         self.process_and_plot()
         self._update_svd_gui = False
+
+    # Header Tab Control events ---------------------------------------
+
+    def on_prev(self, event):
+        print('In on_prev')
+        item = self.TextSearch.GetValue()
+        curr = self.view_hdr.GetCurrentPos()
+        if curr == 0:
+            minp = self.nhdr-1
+            maxp = 0
+        else:
+            minp = curr-1   # -1 so current location isn't found again
+            maxp = 0
+        istr, iend = self.view_hdr.FindText(minPos=minp, maxPos=maxp, text=item)
+        if istr>0 and iend>0:
+            self.view_hdr.ShowPosition(istr)
+            self.view_hdr.SetSelection(istr, iend)
+        else:
+            minp = self.nhdr - 1
+            maxp = 0
+            istr, iend = self.view_hdr.FindText(minPos=minp, maxPos=maxp, text=item)
+            if istr > 0 and iend > 0:
+                self.view_hdr.ShowPosition(istr)
+                self.view_hdr.SetSelection(istr, iend)
+            else:
+                self.view_hdr.ShowPosition(0)
+                self.view_hdr.SetCursor(0)
+
+    def on_search(self, event):
+        self.on_next(event)
+
+    def on_next(self, event):
+        print('In on_next')
+        item = self.TextSearch.GetValue()
+        curr = self.view_hdr.GetCurrentPos()
+        if curr == self.nhdr-1:
+            minp = 0
+            maxp = self.nhdr-1
+        else:
+            minp = curr
+            maxp = self.nhdr-1
+        istr, iend = self.view_hdr.FindText(minPos=minp, maxPos=maxp, text=item)
+        if istr>0 and iend>0:
+            self.view_hdr.ShowPosition(istr)
+            self.view_hdr.SetSelection(istr, iend)
+        else:
+            minp = 0
+            maxp = self.nhdr - 1
+            istr, iend = self.view_hdr.FindText(minPos=minp, maxPos=maxp, text=item)
+            if istr > 0 and iend > 0:
+                self.view_hdr.ShowPosition(istr)
+                self.view_hdr.SetSelection(istr, iend)
+            else:
+                self.view_hdr.ShowPosition(self.nhdr-1)
+                self.view_hdr.SetCursor(self.nhdr-1)
 
 
     #=======================================================

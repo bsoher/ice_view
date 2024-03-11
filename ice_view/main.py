@@ -1,20 +1,9 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2014-2019 Brian J Soher - All Rights Reserved
+# Copyright (c) 2023-2024 Brian J Soher - All Rights Reserved
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are not permitted without explicit permission.
-
-# Dependencies
-#
-# numpy
-# scipy
-# nibabel
-# wxpython
-# matplotlib
-# - pyparsing (for Matplotlib)
-# - python-dateutil (for Matplotlib)
-# pydicom 
 
 
 # Python modules
@@ -30,7 +19,6 @@ import pydicom
 import pydicom.dicomio
 from pydicom.values import convert_numbers
 
-
 # Our modules
 import ice_view.util_menu as util_menu
 import ice_view.util_import as util_import
@@ -45,7 +33,6 @@ import ice_view.common.misc as misc
 import ice_view.common.export as export
 import ice_view.common.wx_util as wx_util
 import ice_view.common.parse_xprot as parse_xprot
-
 
 from ice_view.common.common_dialogs import pickfile, save_as, message, E_OK
 from ice_view.util_ice_view import get_spe_pair, is_dicom, transformation_matrix
@@ -63,7 +50,7 @@ class MyFileDropTarget(wx.FileDropTarget):
 
     def OnDropFiles(self, x, y, filenames):
         if not filenames:
-            return
+            return False
         item = filenames[0]
         if os.path.isfile(item):
             if is_dicom(item):
@@ -75,13 +62,15 @@ class MyFileDropTarget(wx.FileDropTarget):
             txt1 = "Try File->Open"
             self.frame.statusbar.SetStatusText((txt0), 0)
             self.frame.statusbar.SetStatusText((txt1), 1)
+            return False
 
         return True
 
-    
 
 class Main(wx.Frame):
+
     def __init__(self, position, size, fname=None):
+
         # Create a frame using values from our INI file.
         self._left,  self._top    = position
         self._width, self._height = size
@@ -115,15 +104,13 @@ class Main(wx.Frame):
 
         if fname is not None:
             self.load_on_start(fname)
-            #wx.CallAfter(self.load_on_start, fname)
 
         
     def build_panes(self):
         
         self.notebook_ice_view = notebook_ice_view.NotebookIceView(self)
 
-        # create center pane
-        self._mgr.AddPane(self.notebook_ice_view, 
+        self._mgr.AddPane(self.notebook_ice_view,
                           aui.AuiPaneInfo().
                           Name("notebook_ice_view").
                           CenterPane().
@@ -150,9 +137,7 @@ class Main(wx.Frame):
     ##############             on the menu            ############
     ##############                                    ############
 
-    ############    IceView menu
-
-
+    ############    File menu events
 
     def on_open_spe(self, event):
 
@@ -213,6 +198,7 @@ class Main(wx.Frame):
             raw.resppm = 4.7
             raw.seqte = te
             raw.seqtr = tr
+            raw.headers = [buffer,]
 
             dataset = mrsi_dataset.dataset_from_raw(raw)
 
@@ -238,13 +224,13 @@ class Main(wx.Frame):
         filetype_filter = "(*.dcm, *.*)|*.dcm;*.*"
 
         fname = pickfile(message=msg, default_path=default_path, filetype_filter=filetype_filter)
-        msg = ""
         if fname:
             if is_dicom(fname):
                 self.open_dicom(fname)
             else:
                 msg = 'File selected is not DICOM, returning! - \n' + fname
                 message(msg, style=E_OK)
+
 
     def open_dicom(self, fname, ini_name='open_dicom'):
 
@@ -299,6 +285,7 @@ class Main(wx.Frame):
             raw.resppm = resppm[0]
             raw.seqte = te[0]
             raw.seqtr = tr
+            raw.headers = [header[0], ]
 
             dataset = mrsi_dataset.dataset_from_raw(raw)
 
@@ -316,9 +303,6 @@ class Main(wx.Frame):
         util_ice_view_config.set_path(ini_name, path)
 
 
-
-
-    
     def on_open_xml(self, event):
         wx.BeginBusyCursor()
 
@@ -451,8 +435,7 @@ class Main(wx.Frame):
             self.update_title()
 
 
-
-    ############    View  menu
+    ############    View menu events
     
     # View options affect only the dataset and so it's up to the
     # experiment notebook to react to them.
