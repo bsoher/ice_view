@@ -179,16 +179,28 @@ class Main(wx.Frame):
             te    = float(hdr['TE'])
             sequ  = str(hdr['SequenceString'])
             sw    = 1.0/dwell
+            phenc = int(hdr['NoOfPhaseEncodingSteps'])
+            ncol  = int(hdr['NoOfCols'])
+            nrow = int(hdr['NoOfRows'])
+
 
             # read binary data file
             data = np.fromfile(fname_dat, dtype=np.complex64)
-            if data.shape != (npts,) :
-                msg = 'Error (open_spe): Wrong Dimensions, data.shape = %s' % str(data.shape)
-                raise (ValueError(msg))
+
+            if phenc==1:
+                if data.shape != (npts,) :
+                    msg = 'Error (open_spe): Wrong Dimensions, data.shape = %s' % str(data.shape)
+                    raise (ValueError(msg))
+                data = data * np.exp(-1j * np.pi * 90 / 180)
+                data *= 100
+            else:
+                if data.shape[0] != npts * ncol * nrow :
+                    msg = 'Error (open_spe): Wrong Dimensions, data.shape = %d\n  Npts, NCols, NRows = %d, %d, %d' % str(data.shape, npts, ncol, nrow)
+                    raise (ValueError(msg))
+                data = np.conj(data)
+                data.shape = nrow, ncol, npts
 
             # bjs hack
-            data = data * np.exp(-1j*np.pi*90/180)
-            data *= 100
 
             raw = mrsi_data_raw.MrsiDataRaw()
             raw.data_sources = [fname_hdr,]
@@ -238,7 +250,8 @@ class Main(wx.Frame):
         try:
             ds = pydicom.dicomio.read_file(fname)
 
-            data_shape = (1, 1, ds['DataPointRows'].value, ds['DataPointColumns'].value)
+
+            data_shape = (ds['NumberOfFrames'].value, ds['Columns'].value, ds['Rows'].value, ds['DataPointColumns'].value)
 
             dataf = convert_numbers(ds['SpectroscopyData'].value, True, 'f')  # (0x5600, 0x0020)
             data_iter = iter(dataf)
