@@ -248,8 +248,8 @@ class Main(wx.Frame):
 
         path = os.path.dirname(fname)
         try:
-            ds = pydicom.dicomio.read_file(fname)
-
+            #ds = pydicom.dicomio.read_file(fname)
+            ds = pydicom.dcmread(fname)
 
             data_shape = (ds['NumberOfFrames'].value, ds['Columns'].value, ds['Rows'].value, ds['DataPointColumns'].value)
 
